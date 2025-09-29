@@ -12,7 +12,7 @@ struct contact contacts[100];
 int count=0;
 char in[100]={};
 
-void nvline(char *s) {
+void trimnewline(char *s) {
     size_t len = strlen(s);
     if (len > 0 && s[len-1] == '\n') {
         s[len-1] = '\0';
@@ -156,4 +156,5 @@ int main(){
 		case 6:
 		exit(0);
 	}}}
+
 
