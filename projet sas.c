@@ -6,16 +6,14 @@
 int choix;
 int count=20;
 int howmany;
-int indice;
-char in[50]={};//buffer
+int indice,i,j;
+char in[50]={};
 
-// menu structure
+// Configuration du menu
 struct menu{
     char text[100];
     int num;
 };
-
-// menu items
 struct menu Menus[] = {
     {"Ajouter un animal",1},
     {"Afficher les animaux",2},
@@ -23,21 +21,23 @@ struct menu Menus[] = {
     {"Supprimer un animal",4},
     {"Rechercher un animal",5},
     {"Statistiques",6},
-    {"Ajout simple",7},
-    {"Ajout multiple",8},
-    {"Afficher la liste complète",9},
-    {"Trier par nom",10},
-    {"Trier par age",11},
-    {"Afficher uniquement les animaux un habitat spécifique",12},
-    {"Modifier lhabitat",13},
-    {"Modifier lâge",14},
-    {"Rechercher par id",15},
-    {"Rechercher par nom",16},
-    {"Rechercher par espece",17},
-    {"Nombre total danimaux dans le zoo",18},
-    {"Âge moyen des animaux",19},
-    {"Plus vieux et plus jeune animal",20},
-    {"Afficher les espèces les plus représentées",21}
+    {"exit",7},
+    {"Ajout simple",8},
+    {"Ajout multiple",9},
+    {"Afficher la liste complète",10},
+    {"Trier par nom",11},
+    {"Trier par age",12},
+    {"Afficher uniquement les animaux un habitat spécifique",13},
+    {"Modifier lhabitat",14},
+    {"Modifier lâge",15},
+    {"Rechercher par id",16},
+    {"Rechercher par nom",17},
+    {"Rechercher par espece",18},
+    {"Nombre total danimaux dans le zoo",19},
+    {"Âge moyen des animaux",20},
+    {"Plus vieux et plus jeune animal",21},
+    {"Afficher les espèces les plus représentées",22}
+    
 };
 
 // zoo structure
@@ -50,7 +50,7 @@ struct zoo{
     char habitat[50];
 };
 
-// initial animals
+// Animaux
 struct zoo animal[200]={
     {1,5,190.5,"Simba","Lion","Savane"},
     {2,4,175.0,"Nala","Lion","Savane"},
@@ -73,21 +73,26 @@ struct zoo animal[200]={
     {19,5,1.5,"Polly","Oiseau","Jungle"},
     {20,13,180.0,"Kong","Gorille","Jungle"}
 };
-
 struct zoo temp;
-float getInt(char T[]) {
+
+float getInt(char T[]) { // Verification d'input de type float et ID
     float x;
     printf("Enter %s:",T);
-    while (scanf("%f", &x) != 1) {           
-        printf("%s invalide! Veuillez ressayer: ",T);
+	if (strcmp(T,"ID")==0){
+    	while (scanf("%f", &x) !=1 || x>count) {           
+        printf("%s invalide!\nVeuillez ressayer:",T);
         while (getchar() != '\n');    
-    }
+	}
+}   else{
+    while (scanf("%f", &x) != 1 || x<0) {           
+        printf("%s invalide!\nVeuillez ressayer:",T);
+        while (getchar() != '\n');    
+    }}
     return x;
 }
-// affiche un menu entre a et b
-void menu1(int a,int b,char T[]){
+void menu1(int a,int b,char T[]){ // affiche un menu de choix a jusqu'a b
     printf("-----%s-----\n",T);
-    for(int i=a-1;i<b;i++){
+    for(i=a-1;i<b;i++){
         printf("%d. %s\n",Menus[i].num,Menus[i].text);
     }
     choix=getInt("choix");
@@ -95,7 +100,7 @@ void menu1(int a,int b,char T[]){
 }
 // afficher ou ajouter un animal
 void print(int a){
-    for (int i=0;i<a;i++){
+    for (i=0;i<a;i++){
         printf("--------------\n");
         printf("Nom:");
         fgets(animal[count].nom,sizeof(animal[count].nom),stdin);
@@ -113,24 +118,20 @@ void print(int a){
         count++;
     }
 }
-
-// afficher les details d'un animal
 void details(int i){
     printf("ID:%d\nnom:%s\nage:%d\npoids:%.2f\nespece:%s\nhabitat:%s\n",
            animal[i].id,animal[i].nom,animal[i].age,animal[i].poids,animal[i].espece,animal[i].habitat);
 }
-
-//Dans le cas ideal;indice=id-1.Mais pas toujours vrai, par exple dans le cas de supression;alors recherche lineaire.
-int lookforid(){
+int lookforid(){ //Dans le cas ideal;indice=id-1.Mais pas toujours vrai, par exple dans le cas de supression;alors recherche lineaire.
     int id=getInt("ID");
-    for (int j=0;j<count;j++){
+    for (j=0;j<count;j++){
         if (animal[j].id==id)
             return j;
     }
 }
 void lookfor(char T[]){
     int a=0;
-    for(int i=0;i<count;i++){
+    for(i=0;i<count;i++){
         if (strcasecmp(T,animal[i].nom)==0){
             details(i);
             a=1;
@@ -144,7 +145,7 @@ void lookfor(char T[]){
         printf("Desole,le donne entree est invalide");
 }
 
-void echanger(int a,int b){
+void echanger(int a,int b){ //operation swap
     temp = animal[a];
     animal[a] = animal[b];
     animal[b] = temp;
@@ -152,35 +153,43 @@ void echanger(int a,int b){
 
 // restore original order by ID
 void original(){
-    for(int i=0;i<count-1;i++){
-        for(int j=0;j<count-i-1;j++){
+    for( i=0;i<count-1;i++){
+        for(j=0;j<count-i-1;j++){
             if (animal[j].id > animal[j+1].id)
                 echanger(j,j+1);
         }
     }
 }
 
-// trier par nom ou age (alphabet-based for nom)
+// trier par nom ou age
 void trier(char T[]){
+    
     if (strcasecmp(T,"nom")==0){
-        char alphab[26]="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        int indice2[count];
-        for(int j=0;j<count;j++){
-            for(int i=0;i<26;i++){
-                if (toupper(animal[j].nom[0])==alphab[i])
-                    indice2[j]=i;
+    char alphab[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int indice2[count];
+    for(j = 0; j < count; j++){
+        char first = toupper(animal[j].nom[0]);
+        for( i = 0; i < 26; i++){
+            if (first == alphab[i]) {
+                indice2[j] = i;
+                break;
             }
         }
-        for(int i=0;i<count-1;i++){
-            for(int j=0;j<count-i-1;j++){
-                if(indice2[j]>indice2[j+1])
-                    echanger(j,j+1);
+    }    
+    // bubble sort
+    for( i = 0; i < count - 1; i++){
+        for( j = 0; j < count - i - 1; j++){
+            if(indice2[j] > indice2[j+1]){
+                echanger(j, j+1);
+                int tmp = indice2[j];
+                indice2[j] = indice2[j+1];
+                indice2[j+1] = tmp;
             }
         }
     }
-    else if (strcasecmp(T,"age")==0){
-        for(int i=0;i<count-1;i++){
-            for(int j=0;j<count-i-1;j++){
+    }else if (strcasecmp(T,"age")==0){
+        for( i=0;i<count-1;i++){
+            for(j=0;j<count-i-1;j++){
                 if(animal[j].age>animal[j+1].age)
                     echanger(j,j+1);
             }
@@ -189,27 +198,34 @@ void trier(char T[]){
 }
 
 void afficher(char T[]){
-    int count1=0;
+    int count1=0, k=0;
     if (strcasecmp(T,"all")==0)
         original();
-    else if (strcasecmp(T,"habitat")==0){
-       printf("Entrez l'habitat:");
-       fgets(in,sizeof(in),stdin);
-       in[strcspn(in,"\n")]=0;
-       for(int i=0;i<count;i++){
-            if(strcasecmp(animal[i].habitat,in)==0){
-                details(i);
-                count1++;
-            }
-       }
-       if(count1==0)
-           printf("l'habitat entree n' est pas disponible\n");
-    }
-    else
-        trier(T);
-
-    for(int i=0;i<count;i++)
-        details(i);
+    else{
+    	if (strcasecmp(T,"habitat")==0){
+	       printf("Entrez l'habitat:");
+	       fgets(in,sizeof(in),stdin);
+	       while(in[k]!='\n')k++;
+	       in[k] = '\0';
+	       for(i=0;i<count;i++){
+	       	printf("%s?\n", animal[i].habitat);
+	            if(stricmp(animal[i].habitat, in)==0){
+	                details(i);
+	                count1++;
+	            }
+       	   }
+	       if(count1==0){
+	           printf("l'habitat entree n' est pas disponible\n");}
+	    }
+	    else{
+	    	trier(T);
+	    	for(i=0;i<count;i++){
+		        printf("---------------\n");
+		        details(i);
+			}
+		}
+	        
+	}    
 }
 
 void delete_animal(){
@@ -221,7 +237,7 @@ void delete_animal(){
 
 void agemoyen(){
     int s=0;
-    for(int i=0;i<count;i++)
+    for(i=0;i<count;i++)
         s+=animal[i].age;
     printf("L'age moyen des animaux est : %.2f\n",(float)s/count);    
 }
@@ -243,14 +259,14 @@ void epr(){//especes les plus representes
         {"Suricate",0},{"Phacochere",0},{"Serpent",0},{"Perroquet",0},
         {"Chien sauvage",0},{"Tortue",0},{"Oiseau",0},{"Gorille",0}
     };
-    for(int i=0;i<count;i++){
-        for(int j=0;j<16;j++){
+    for(i=0;i<count;i++){
+        for( j=0;j<16;j++){
             if(strcasecmp(animal[i].espece,especes[j].espece1)==0)
                 especes[j].nombre++;
         }
     }
     int max=0,indice=0;
-    for(int j=0;j<16;j++){
+    for(j=0;j<16;j++){
         if(especes[j].nombre>max){
             max=especes[j].nombre;
             indice=j;
@@ -261,76 +277,90 @@ void epr(){//especes les plus representes
 
 int main(){
     while(1){
-        menu1(1,6,"MENU");
+        menu1(1,7,"MENU");
         switch(choix){
             case 1:
-                menu1(7,8,"AJOUTER UN ANIMAL");
+                menu1(8,9,"AJOUTER UN ANIMAL");
                 switch(choix){
-                    case 7: print(1); break;
-                    case 8:
+                    case 8: print(1); break;
+                    case 9:
                         printf("Combien d'animaux vous voulez ajouter:");
                         scanf("%d",&howmany);
                         getchar();
                         print(howmany);
                         break;
+                    default:
+                    printf("Choix entree est invalide!\n");
                 }
                 break;
             case 2:
-                menu1(9,12,"AFFICHER LES ANIMAUX");
+                menu1(10,13,"AFFICHER LES ANIMAUX");
                 switch(choix){
-                    case 9: afficher("all"); break;
-                    case 10: afficher("nom"); break;
-                    case 11: afficher("age"); break;
-                    case 12: afficher("habitat"); break;
+                    case 10: afficher("all"); break;
+                    case 11: afficher("nom"); break;
+                    case 12: afficher("age"); break;
+                    case 13: afficher("habitat"); break;
+                    default:
+                    printf("Choix entree est invalide!\n");
                 }
                 break;
             case 3:
                 indice=lookforid();
-                menu1(13,14,"MODIFIER UN ANIMAL");
+                menu1(14,15,"MODIFIER UN ANIMAL");
                 switch(choix){
-                    case 13:
+                    case 14:
                         printf("Habitat:");
                         fgets(animal[indice].habitat,sizeof(animal[indice].habitat),stdin);
                         animal[indice].habitat[strcspn(animal[indice].habitat,"\n")]=0;
                         break;
-                    case 14:
+                    case 15:
                         animal[indice].age=getInt("age");
                         break;
+                    default:
+                    printf("Choix entree est invalide!\n");
                 }
                 break;
             case 4:
                 delete_animal();
                 break;
             case 5:
-                menu1(15,17,"RECHERCHER UN ANIMAL");
+                menu1(16,18,"RECHERCHER UN ANIMAL");
                 switch(choix){
-                    case 15:
+                    case 16:
                         indice=lookforid();
                         details(indice);
                         break;
-                    case 16:
+                    case 17:
                         printf("Entrez le nom:");
                         fgets(in,sizeof(in),stdin);
                         in[strcspn(in,"\n")]=0;
                         lookfor(in);
                         break;
-                    case 17:
+                    case 18:
                         printf("Entrez l'espece:");
                         fgets(in,sizeof(in),stdin);
                         in[strcspn(in,"\n")]=0;
                         lookfor(in);
                         break;
+                    default:
+                    printf("Choix entree est invalide!\n");
                 }
                 break;
             case 6:
-                menu1(18,21,"STATISTIQUES");
+                menu1(19,22,"STATISTIQUES");
                 switch(choix){
-                    case 18: printf("Le nombre total des animaux est: %d\n",count); break;
-                    case 19: agemoyen(); break;
-                    case 20: pvpj(); break;
-                    case 21: epr(); break;
+                    case 19: printf("Le nombre total des animaux est: %d\n",count); break;
+                    case 20: agemoyen(); break;
+                    case 21: pvpj(); break;
+                    case 22: epr(); break;
+                    default:
+                    printf("Choix entree est invalide!\n");
                 }
                 break;
+            case 7:
+			    exit(0);    
+            default:
+            printf("choix entree est invalide!\n");   
         }
     }
     return 0;
